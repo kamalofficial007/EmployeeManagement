@@ -16,7 +16,7 @@ COPY ["UserManagement.csproj", "."]
 RUN dotnet restore "./UserManagement.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./UserManagement.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./UserManagement.csproj" -c $BUILD_CONFIGURATION -o /build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
