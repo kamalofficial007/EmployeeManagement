@@ -9,5 +9,8 @@ namespace UserManagement.Repositories.Interfaces
         Task AddUserAsync(User user);
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(int id);
+
+        // Complex queries using Dapper
+        Task<IEnumerable<dynamic>> GetUsersWithRolesAsync();
     }
 }

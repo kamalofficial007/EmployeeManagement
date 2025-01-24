@@ -1,5 +1,7 @@
 ﻿using Dapper;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
+using UserManagement.Data;
 using UserManagement.Models;
 using UserManagement.Repositories.Interfaces;
 
@@ -7,53 +9,57 @@ namespace UserManagement.Repositories
 {
     public class UserRepository:IUserRepository
     {
+        private readonly AppDbContext _context;
         private readonly IDbConnection _dbConnection;
-        public UserRepository(IDbConnection dbConnection)
+
+        public UserRepository(AppDbContext context, IDbConnection dbConnection)
         {
+            _context = context;
             _dbConnection = dbConnection;
         }
 
+        // CRUD operations using EF
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            const string sql = "SELECT u.*, r.Name AS RoleName FROM Users u JOIN Roles r ON u.RoleId = r.Id";
-            return await _dbConnection.QueryAsync<User, Role, User>(sql,
-                (user, role) =>
-                {
-                    user.Role = role;
-                    return user;
-                }, splitOn: "RoleId");
+            return await _context.Users.ToListAsync();
         }
-
-        // ... other code ...
 
         public async Task<User> GetUserByIdAsync(int id)
         {
-            const string sql = "SELECT u.*, r.Name AS RoleName FROM Users u JOIN Roles r ON u.RoleId = r.Id WHERE u.Id = @Id";
-            var result = await _dbConnection.QueryAsync<User, Role, User>(sql,
-                (user, role) =>
-                {
-                    user.Role = role;
-                    return user;
-                }, new { Id = id }, splitOn: "RoleId");
-            return result.FirstOrDefault();
+            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task AddUserAsync(User user)
         {
-            const string sql = "INSERT INTO Users (Username, Email, PasswordHash, RoleId) VALUES (@Username, @Email, @PasswordHash, @RoleId)";
-            await _dbConnection.ExecuteAsync(sql, user);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateUserAsync(User user)
         {
-            const string sql = "UPDATE Users SET Username = @Username, Email = @Email, PasswordHash = @PasswordHash, RoleId = @RoleId WHERE Id = @Id";
-            await _dbConnection.ExecuteAsync(sql, user);
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteUserAsync(int id)
         {
-            const string sql = "DELETE FROM Users WHERE Id = @Id";
-            await _dbConnection.ExecuteAsync(sql, new { Id = id });
+            var user = await _context.Users.FindAsync(id);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // Complex queries using Dapper
+        public async Task<IEnumerable<dynamic>> GetUsersWithRolesAsync()
+        {
+            const string sql = @"
+                SELECT u.Id, u.Username, u.Email, u.PasswordHash, r.Name AS RoleName, r.Description AS RoleDescription
+                FROM Users u
+                INNER JOIN Roles r ON u.RoleId = r.Id";
+
+            return await _dbConnection.QueryAsync(sql);
         }
     }
 }

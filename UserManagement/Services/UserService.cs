@@ -27,18 +27,13 @@ namespace UserManagement.Services
             return await _userRepository.GetUserByIdAsync(id);
         }
 
-        public async Task AddUserAsync(User user, string password)
+        public async Task AddUserAsync(User user)
         {
-            user.PasswordHash = HashPassword(password);
             await _userRepository.AddUserAsync(user);
         }
 
-        public async Task UpdateUserAsync(User user, string password)
+        public async Task UpdateUserAsync(User user)
         {
-            if (!string.IsNullOrEmpty(password))
-            {
-                user.PasswordHash = HashPassword(password);
-            }
             await _userRepository.UpdateUserAsync(user);
         }
 
@@ -47,11 +42,9 @@ namespace UserManagement.Services
             await _userRepository.DeleteUserAsync(id);
         }
 
-        private string HashPassword(string password)
+        public async Task<IEnumerable<dynamic>> GetUsersWithRolesAsync()
         {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
+            return await _userRepository.GetUsersWithRolesAsync();
         }
     }
 }

@@ -6,59 +6,48 @@ namespace UserManagement.Data
     {
         private readonly IDbConnection _dbConnection;
         private readonly string _dbFilePath;
-        private readonly string _contentRootPath;
-
-        public static string ApplicationFolder { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "UserManagement"); } }
-        public static string SQLiteDatabaseFolder { get { return Path.Combine(ApplicationFolder, "database\\"); } }
-
         public SchemaInitializer(IDbConnection dbConnection, IHostEnvironment environment)
         {
             // Extract the SQLite database file path from the connection string
             _dbConnection = dbConnection;
-            // Use IHostEnvironment to get the root directory of the project
-            _contentRootPath = environment.ContentRootPath;
+            // Extract the database file path from the connection string
             var connectionString = _dbConnection.ConnectionString;
             var startIndex = connectionString.IndexOf("Data Source=", StringComparison.OrdinalIgnoreCase) + "Data Source=".Length;
-            _dbFilePath = connectionString.Substring(startIndex);
+            _dbFilePath = connectionString.Substring(startIndex).Trim(';');
+            Console.WriteLine($"Database File Path: {_dbFilePath}"); // Debugging line
         }
 
         public void Initialize()
         {
-            // Check if the database file already exists
-            string dbFilePath = SQLiteDatabaseFolder + _dbFilePath;
-            if (File.Exists(dbFilePath))
+            Console.WriteLine("Database not found. Initializing schema...");
+            if (!File.Exists(_dbFilePath))
             {
-                Console.WriteLine("Database already exists. Skipping schema initialization.");
-                return;
+                File.Create(_dbFilePath).Close();
             }
-            else
-            {
-                Console.WriteLine("Database not found. Initializing schema...");
-                var schemaFilePath = Path.Combine(_contentRootPath, "Data", "schema.sql");
-                if (File.Exists(schemaFilePath))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(dbFilePath));
+            var sql = "CREATE TABLE IF NOT EXISTS Roles(" +
+"Id INTEGER PRIMARY KEY AUTOINCREMENT," +
+"Name TEXT NOT NULL," +
+"Description TEXT);";
+            sql += " CREATE TABLE IF NOT EXISTS Users(" +
+                 "Id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                 "Username TEXT NOT NULL," +
+                 "Email TEXT NOT NULL," +
+                 "PasswordHash TEXT NOT NULL," +
+                 "RoleId INTEGER NOT NULL," +
+                 "FOREIGN KEY (RoleId) REFERENCES Roles (Id))";
 
-                    var sql = File.ReadAllText(schemaFilePath);
+            using var command = _dbConnection.CreateCommand();
+            command.CommandText = sql;
 
-                    using var command = _dbConnection.CreateCommand();
-                    command.CommandText = sql;
+            // Open connection, execute schema creation, and close connection
+            _dbConnection.Open();
+            command.ExecuteNonQuery();
+            _dbConnection.Close();
 
-                    // Open connection, execute schema creation, and close connection
-                    _dbConnection.Open();
-                    command.ExecuteNonQuery();
-                    _dbConnection.Close();
+            Console.WriteLine("Schema initialized successfully.");
 
-                    Console.WriteLine("Schema initialized successfully.");
-                }
-                else
-                {
-                    Console.WriteLine($"Schema file not found at: {schemaFilePath}");
-                    throw new FileNotFoundException("Schema file is missing.");
-
-                }
-            }
         }
     }
 }
-            
+
+

@@ -17,14 +17,14 @@ namespace UserManagement.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUser(int id)
+        public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null) return NotFound();
@@ -32,23 +32,20 @@ namespace UserManagement.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddUser([FromBody] User user, [FromQuery] string password)
+        public async Task<IActionResult> AddUser([FromBody] User user)
         {
-            if (string.IsNullOrEmpty(password))
-                return BadRequest("Password is required.");
-
-            await _userService.AddUserAsync(user, password);
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+            await _userService.AddUserAsync(user);
+            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] User updatedUser, [FromQuery] string password)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
         {
             var existingUser = await _userService.GetUserByIdAsync(id);
             if (existingUser == null) return NotFound();
 
-            updatedUser.Id = id;
-            await _userService.UpdateUserAsync(updatedUser, password);
+            user.Id = id;
+            await _userService.UpdateUserAsync(user);
             return NoContent();
         }
 
@@ -60,6 +57,13 @@ namespace UserManagement.Controllers
 
             await _userService.DeleteUserAsync(id);
             return NoContent();
+        }
+
+        [HttpGet("WithRoles")]
+        public async Task<IActionResult> GetUsersWithRoles()
+        {
+            var users = await _userService.GetUsersWithRolesAsync();
+            return Ok(users);
         }
     }
 }

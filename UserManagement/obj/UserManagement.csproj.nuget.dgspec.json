@@ -56,6 +56,10 @@
               "target": "Package",
               "version": "[13.0.1, )"
             },
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.0.3, )"
+            },
             "Dapper": {
               "target": "Package",
               "version": "[2.1.35, )"

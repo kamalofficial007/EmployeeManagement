@@ -1,16 +1,14 @@
 ﻿using UserManagement.Models;
 
-namespace UserManagement.Repositories.Interfaces
+namespace UserManagement.Services.Interfaces
 {
-    public interface IRoleRepository
+    public interface IRoleService
     {
         Task<IEnumerable<Role>> GetAllRolesAsync();
         Task<Role> GetRoleByIdAsync(int id);
         Task AddRoleAsync(Role role);
         Task UpdateRoleAsync(Role role);
         Task DeleteRoleAsync(int id);
-
-        // Complex queries with Dapper
         Task<IEnumerable<Role>> GetRolesWithUsersCount();
     }
 }

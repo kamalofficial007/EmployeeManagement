@@ -6,8 +6,11 @@ namespace UserManagement.Services.Interfaces
     {
         Task<IEnumerable<User>> GetAllUsersAsync();
         Task<User> GetUserByIdAsync(int id);
-        Task AddUserAsync(User user, string password);
-        Task UpdateUserAsync(User user, string password);
+        Task AddUserAsync(User user);
+        Task UpdateUserAsync(User user);
         Task DeleteUserAsync(int id);
+
+        // Complex query method
+        Task<IEnumerable<dynamic>> GetUsersWithRolesAsync();
     }
 }

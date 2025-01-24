@@ -6,7 +6,13 @@ USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
-
+#
+## Switch to root to create /data
+#USER root
+#RUN mkdir /database && chmod -R 777 /data
+#
+## Switch back to the default user
+#USER $APP_UID
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
