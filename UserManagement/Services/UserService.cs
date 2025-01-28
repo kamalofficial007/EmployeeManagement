@@ -27,14 +27,14 @@ namespace UserManagement.Services
             return await _userRepository.GetUserByIdAsync(id);
         }
 
-        public async Task AddUserAsync(User user)
+        public async Task<User> AddUserAsync(UserDto user)
         {
-            await _userRepository.AddUserAsync(user);
+            return await _userRepository.AddUserAsync(user);
         }
 
-        public async Task UpdateUserAsync(User user)
+        public async Task UpdateUserAsync(UserDto userDto)
         {
-            await _userRepository.UpdateUserAsync(user);
+            await _userRepository.UpdateUserAsync(userDto);
         }
 
         public async Task DeleteUserAsync(int id)

@@ -17,15 +17,15 @@ namespace UserManagement.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest loginRequest)
         {
-            if (loginRequest == null || string.IsNullOrEmpty(loginRequest.Username) || string.IsNullOrEmpty(loginRequest.Password))
+            if (loginRequest == null || string.IsNullOrEmpty(loginRequest.EmailId) || string.IsNullOrEmpty(loginRequest.Password))
             {
-                return BadRequest("Invalid username or password.");
+                return BadRequest("Invalid emailid or password.");
             }
 
-            var token = _authService.Authenticate(loginRequest.Username, loginRequest.Password);
+            var token = _authService.Authenticate(loginRequest.EmailId, loginRequest.Password);
             if (token == null)
             {
-                return Unauthorized("Invalid username or password.");
+                return Unauthorized("Invalid emailid or password.");
             }
 
             return Ok(new { Token = token });
@@ -34,7 +34,7 @@ namespace UserManagement.Controllers
 
     public class LoginRequest
     {
-        public string Username { get; set; }
+        public string EmailId { get; set; }
         public string Password { get; set; }
     }
 }

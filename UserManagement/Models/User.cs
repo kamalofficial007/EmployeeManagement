@@ -9,6 +9,7 @@ namespace UserManagement.Models
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public int RoleId { get; set; }
-        public string RoleText { get; set; }        
+        public string RoleText { get; set; }      
+        
     }
 }

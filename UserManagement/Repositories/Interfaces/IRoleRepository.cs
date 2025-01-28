@@ -1,4 +1,5 @@
-﻿using UserManagement.Models;
+﻿using UserManagement.DTOs;
+using UserManagement.Models;
 
 namespace UserManagement.Repositories.Interfaces
 {
@@ -6,8 +7,8 @@ namespace UserManagement.Repositories.Interfaces
     {
         Task<IEnumerable<Role>> GetAllRolesAsync();
         Task<Role> GetRoleByIdAsync(int id);
-        Task AddRoleAsync(Role role);
-        Task UpdateRoleAsync(Role role);
+        Task<Role> AddRoleAsync(RoleDto role);
+        Task UpdateRoleAsync(RoleDto role);
         Task DeleteRoleAsync(int id);
 
         // Complex queries with Dapper

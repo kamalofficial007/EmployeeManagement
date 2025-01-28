@@ -15,10 +15,10 @@ namespace UserManagement.Services
         }
 
 
-        public string Authenticate(string username, string password)
+        public string Authenticate(string emailId, string password)
         {
             // Find the user in the database
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users.FirstOrDefault(u => u.Email.ToLower() == emailId.ToLower());
             if (user == null)
             {
                 return null; // User not found

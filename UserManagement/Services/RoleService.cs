@@ -1,4 +1,5 @@
-﻿using UserManagement.Models;
+﻿using UserManagement.DTOs;
+using UserManagement.Models;
 using UserManagement.Repositories.Interfaces;
 using UserManagement.Services.Interfaces;
 
@@ -23,12 +24,12 @@ namespace UserManagement.Services
             return await _roleRepository.GetRoleByIdAsync(id);
         }
 
-        public async Task AddRoleAsync(Role role)
+        public async Task<Role> CreateRoleAsync(RoleDto role)
         {
-            await _roleRepository.AddRoleAsync(role);
+           return await _roleRepository.AddRoleAsync(role);
         }
 
-        public async Task UpdateRoleAsync(Role role)
+        public async Task UpdateRoleAsync(RoleDto role)
         {
             await _roleRepository.UpdateRoleAsync(role);
         }

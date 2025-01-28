@@ -1,6 +1,6 @@
 ﻿namespace UserManagement.Helpers
 {
-    public class PasswordHasher
+    static class PasswordHasher
     {
         public static string HashPassword(string password)
         {

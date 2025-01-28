@@ -1,7 +1,10 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using UserManagement.Data;
+using UserManagement.DTOs;
+using UserManagement.Helpers;
 using UserManagement.Models;
 using UserManagement.Repositories.Interfaces;
 
@@ -10,7 +13,8 @@ namespace UserManagement.Repositories
     public class UserRepository:IUserRepository
     {
         private readonly AppDbContext _context;
-        private readonly IDbConnection _dbConnection;
+        private readonly IDbConnection _dbConnection;        
+
 
         public UserRepository(AppDbContext context, IDbConnection dbConnection)
         {
@@ -26,19 +30,36 @@ namespace UserManagement.Repositories
 
         public async Task<User> GetUserByIdAsync(int id)
         {
-            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+
         }
 
-        public async Task AddUserAsync(User user)
+        public async Task<User> AddUserAsync(UserDto userDto)
         {
+            var user = new User
+            {
+                Username = userDto.Username,
+                Email = userDto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
+                RoleId = userDto.RoleId
+            };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            return user;
         }
 
-        public async Task UpdateUserAsync(User user)
+        public async Task UpdateUserAsync(UserDto userDto)
         {
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            var user = await _context.Users.FindAsync(userDto.Id);
+            if (user != null)
+            {
+                user.Username = userDto.Username;
+                user.Email = userDto.Email;
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+                user.RoleId = userDto.RoleId;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task DeleteUserAsync(int id)

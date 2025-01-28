@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using UserManagement.Data;
+using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Repositories.Interfaces;
 
@@ -29,20 +30,40 @@ namespace UserManagement.Repositories
             return await _context.Roles.FindAsync(id);
         }
 
-        public async Task AddRoleAsync(Role role)
+        public async Task<Role> AddRoleAsync(RoleDto roleDto)
         {
+            var role = new Role
+            {
+                Name = roleDto.Name,
+                Description = roleDto.Description
+            };
+
             _context.Roles.Add(role);
             await _context.SaveChangesAsync();
+            return role;
         }
 
-        public async Task UpdateRoleAsync(Role role)
+        public async Task UpdateRoleAsync(RoleDto roleDto)
         {
-            _context.Roles.Update(role);
-            await _context.SaveChangesAsync();
+            var role = await _context.Roles.FindAsync(roleDto.Id);
+            if (role != null)
+            {
+                role.Name = roleDto.Name;
+                role.Description = roleDto.Description;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task DeleteRoleAsync(int id)
         {
+            // Check if any user is assigned to this role
+            bool isRoleAssigned = await _context.Users.AnyAsync(u => u.RoleId == id);
+            if (isRoleAssigned)
+            {
+                throw new InvalidOperationException("Role cannot be deleted as it is assigned to one or more users.");
+            }
+
             var role = await _context.Roles.FindAsync(id);
             if (role != null)
             {

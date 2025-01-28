@@ -1,4 +1,5 @@
-﻿using UserManagement.Models;
+﻿using UserManagement.DTOs;
+using UserManagement.Models;
 
 namespace UserManagement.Services.Interfaces
 {
@@ -6,8 +7,8 @@ namespace UserManagement.Services.Interfaces
     {
         Task<IEnumerable<Role>> GetAllRolesAsync();
         Task<Role> GetRoleByIdAsync(int id);
-        Task AddRoleAsync(Role role);
-        Task UpdateRoleAsync(Role role);
+        Task<Role> CreateRoleAsync(RoleDto roleDto);
+        Task UpdateRoleAsync(RoleDto roleDto);
         Task DeleteRoleAsync(int id);
         Task<IEnumerable<Role>> GetRolesWithUsersCount();
     }

@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Services;
 using UserManagement.Services.Interfaces;
 
 namespace UserManagement.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController: ControllerBase
@@ -16,54 +19,137 @@ namespace UserManagement.Controllers
             _userService = userService;
         }
 
+        /// <summary>
+        /// Get all users.
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
-            var users = await _userService.GetAllUsersAsync();
-            return Ok(users);
+            try
+            {
+                var users = await _userService.GetAllUsersAsync();
+                return Ok(users); // 200 OK
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("An error occurred while retrieving users.", ex);
+            }
         }
+   
 
+        /// <summary>
+        /// Get a user by ID.
+        /// </summary>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
+        public async Task<ActionResult<User>> GetUserById(int id)
         {
-            var user = await _userService.GetUserByIdAsync(id);
-            if (user == null) return NotFound();
-            return Ok(user);
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound(new { Message = $"User with ID {id} not found." }); // 404 Not Found
+                }
+                return Ok(user); // 200 OK
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"An error occurred while retrieving the user with ID {id}.", ex);
+            }
         }
 
+        /// <summary>
+        /// Create a new user.
+        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> AddUser([FromBody] User user)
+        public async Task<ActionResult<User>> CreateUser([FromBody] UserDto userDto)
         {
-            await _userService.AddUserAsync(user);
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState); // 400 Bad Request
+                }
+
+                await _userService.AddUserAsync(userDto);
+                var createdUser = await _userService.GetUserByIdAsync(userDto.Id);
+                return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser); // 201 Created
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("An error occurred while creating the user.", ex);
+            }
         }
 
+        /// <summary>
+        /// Update an existing user.
+        /// </summary>
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDto userDto)
         {
-            var existingUser = await _userService.GetUserByIdAsync(id);
-            if (existingUser == null) return NotFound();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState); // 400 Bad Request
+                }
 
-            user.Id = id;
-            await _userService.UpdateUserAsync(user);
-            return NoContent();
+                if (id != userDto.Id)
+                {
+                    return BadRequest(new { Message = "ID mismatch." }); // 400 Bad Request
+                }
+
+                var existingUser = await _userService.GetUserByIdAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound(new { Message = $"User with ID {id} not found." }); // 404 Not Found
+                }
+
+                await _userService.UpdateUserAsync(userDto);
+                return NoContent(); // 204 No Content
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"An error occurred while updating the user with ID {id}.", ex);
+            }
         }
 
+        /// <summary>
+        /// Delete a user by ID.
+        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var existingUser = await _userService.GetUserByIdAsync(id);
-            if (existingUser == null) return NotFound();
+            try
+            {
+                var existingUser = await _userService.GetUserByIdAsync(id);
+                if (existingUser == null)
+                {
+                    return NotFound(new { Message = $"User with ID {id} not found." }); // 404 Not Found
+                }
 
-            await _userService.DeleteUserAsync(id);
-            return NoContent();
+                await _userService.DeleteUserAsync(id);
+                return NoContent(); // 204 No Content
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"An error occurred while deleting the user with ID {id}.", ex);
+            }
+
         }
 
         [HttpGet("WithRoles")]
         public async Task<IActionResult> GetUsersWithRoles()
         {
-            var users = await _userService.GetUsersWithRolesAsync();
-            return Ok(users);
+            try
+            {
+                var users = await _userService.GetUsersWithRolesAsync();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("An error occurred while retrieving users with roles.", ex);
+            }
         }
     }
 }
